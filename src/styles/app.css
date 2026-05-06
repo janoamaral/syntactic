@@ -18,6 +18,7 @@
   --radius-md:   10px;
   --radius-lg:   16px;
   --shadow:      0 2px 12px rgba(0,0,0,0.5);
+  --font-title:  'Old Standard TT', Georgia, serif;
 }
 
 /* ─── App shell layout ──────────────────────────────────────────────────── */
@@ -80,7 +81,7 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   padding: 9px 14px;
-  border-radius: var(--radius-sm);
+  border-radius: 9999px;
   transition: background 0.15s;
   margin-bottom: 4px;
 }
@@ -101,7 +102,7 @@
   gap: 10px;
   width: 100%;
   padding: 9px 12px;
-  border-radius: var(--radius-sm);
+  border-radius: 9999px;
   font-size: 14px;
   color: var(--text-2);
   transition: background 0.12s, color 0.12s;
@@ -170,6 +171,7 @@
 }
 
 .session-setup__tagline {
+  font-family: var(--font-title);
   font-size: 32px;
   font-weight: 300;
   color: var(--text-1);
@@ -257,7 +259,7 @@
   color: #fff;
   font-size: 15px;
   font-weight: 600;
-  border-radius: var(--radius-sm);
+  border-radius: 9999px;
   transition: background 0.15s, opacity 0.15s;
   margin-top: 8px;
 }
@@ -280,7 +282,7 @@
   border: 1px solid var(--border);
   color: var(--text-2);
   font-size: 13px;
-  border-radius: var(--radius-sm);
+  border-radius: 9999px;
   transition: background 0.12s, color 0.12s, border-color 0.12s;
 }
 
@@ -318,6 +320,7 @@
 }
 
 .conversation-header__title {
+  font-family: var(--font-title);
   font-size: 15px;
   font-weight: 600;
   color: var(--text-1);
@@ -492,7 +495,7 @@
   color: #fff;
   font-size: 13px;
   font-weight: 600;
-  border-radius: var(--radius-sm);
+  border-radius: 9999px;
   transition: background 0.15s, opacity 0.15s;
 }
 
@@ -686,6 +689,7 @@
 }
 
 .view-title {
+  font-family: var(--font-title);
   font-size: 22px;
   font-weight: 600;
   color: var(--text-1);
@@ -790,10 +794,25 @@
 .session-detail__header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
   gap: 14px;
   padding: 20px 32px;
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
+}
+
+.session-detail__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.session-detail__export-status {
+  font-size: 12px;
+  color: var(--text-3);
+  margin-left: 2px;
 }
 
 .session-detail__back {
@@ -803,7 +822,7 @@
   font-size: 13px;
   color: var(--text-2);
   padding: 6px 10px;
-  border-radius: var(--radius-sm);
+  border-radius: 9999px;
   transition: color 0.12s, background 0.12s;
 }
 
@@ -885,6 +904,7 @@
 }
 
 .chart-card__title {
+  font-family: var(--font-title);
   font-size: 14px;
   font-weight: 600;
   color: var(--text-1);
@@ -943,7 +963,7 @@
   border: 1px solid var(--border);
   color: var(--text-2);
   font-size: 13px;
-  border-radius: var(--radius-sm);
+  border-radius: 9999px;
   cursor: pointer;
   transition: background 0.12s, color 0.12s, border-color 0.12s;
 }
@@ -1066,5 +1086,18 @@
 
   .form-row {
     grid-template-columns: 1fr;
+  }
+
+  .session-detail__header {
+    padding: 16px 20px;
+  }
+
+  .session-detail__actions {
+    width: 100%;
+  }
+
+  .session-detail__actions .btn-secondary {
+    flex: 1;
+    justify-content: center;
   }
 }

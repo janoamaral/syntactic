@@ -20,7 +20,7 @@ export interface PracticeSessionState {
 
 export interface PracticeSessionActions {
   startSession: (context: ConversationContext) => Promise<void>
-  submitUserTurn: (userMessage: string) => Promise<void>
+  submitUserTurn: (userMessage: string) => Promise<boolean>
   resetSession: () => void
   clearError: () => void
 }
@@ -81,7 +81,7 @@ export function usePracticeSession(
 
   const submitUserTurn = useCallback(
     async (userMessage: string) => {
-      if (state.phase !== 'active' || !state.session) return
+      if (state.phase !== 'active' || !state.session) return false
 
       setState((prev) => ({ ...prev, phase: 'loading', error: null }))
 
@@ -130,12 +130,14 @@ export function usePracticeSession(
           latestAnalysis: result.analysis,
           error: null,
         })
+        return true
       } catch (err) {
         setState((prev) => ({
           ...prev,
           phase: 'active',
           error: err instanceof Error ? err.message : 'Failed to get a response. Check that Ollama is running.',
         }))
+        return false
       }
     },
     [state.phase, state.session, settings],

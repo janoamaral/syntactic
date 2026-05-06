@@ -1,26 +1,30 @@
-import { useRef, useCallback, type KeyboardEvent } from 'react'
+import { useState, useCallback, type KeyboardEvent } from 'react'
 
 interface ComposerProps {
-  onSubmit: (value: string) => void
+  onSubmit: (value: string) => Promise<boolean>
   disabled: boolean
   loading: boolean
 }
 
 export function Composer({ onSubmit, disabled, loading }: ComposerProps) {
-  const ref = useRef<HTMLTextAreaElement>(null)
+  const [value, setValue] = useState('')
 
-  const submit = useCallback(() => {
-    const value = ref.current?.value.trim()
-    if (!value || disabled || loading) return
-    onSubmit(value)
-    if (ref.current) ref.current.value = ''
-  }, [onSubmit, disabled, loading])
+  const submit = useCallback(async () => {
+    const trimmedValue = value.trim()
+    if (!trimmedValue || disabled || loading) return false
+
+    const submitted = await onSubmit(trimmedValue)
+    if (submitted) {
+      setValue('')
+    }
+    return submitted
+  }, [value, onSubmit, disabled, loading])
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent<HTMLTextAreaElement>) => {
       if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
         e.preventDefault()
-        submit()
+        void submit()
       }
     },
     [submit],
@@ -30,10 +34,11 @@ export function Composer({ onSubmit, disabled, loading }: ComposerProps) {
     <div className="composer">
       <div className="composer__field">
         <textarea
-          ref={ref}
           className="composer__textarea"
           placeholder="Write your reply here…"
+          value={value}
           disabled={disabled || loading}
+          onChange={(event) => setValue(event.target.value)}
           onKeyDown={handleKeyDown}
           aria-label="Your message"
         />
@@ -44,7 +49,7 @@ export function Composer({ onSubmit, disabled, loading }: ComposerProps) {
           <button
             type="button"
             className="composer__send"
-            onClick={submit}
+            onClick={() => void submit()}
             disabled={disabled || loading}
             aria-label="Send message"
           >

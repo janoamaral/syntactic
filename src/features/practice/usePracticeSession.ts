@@ -1,0 +1,153 @@
+import { useState, useCallback } from 'react'
+import type {
+  AppSettings,
+  ConversationContext,
+  ConversationTurn,
+  FeedbackAnalysis,
+  PracticeSession,
+} from '../../types/domain'
+import { getProvider } from '../../llm/providers'
+import { saveSession } from '../../storage/sessionDb'
+
+export type SessionPhase = 'idle' | 'starting' | 'active' | 'loading'
+
+export interface PracticeSessionState {
+  phase: SessionPhase
+  session: PracticeSession | null
+  latestAnalysis: FeedbackAnalysis | null
+  error: string | null
+}
+
+export interface PracticeSessionActions {
+  startSession: (context: ConversationContext) => Promise<void>
+  submitUserTurn: (userMessage: string) => Promise<void>
+  resetSession: () => void
+  clearError: () => void
+}
+
+function makeId(): string {
+  return crypto.randomUUID()
+}
+
+export function usePracticeSession(
+  settings: AppSettings,
+): PracticeSessionState & PracticeSessionActions {
+  const [state, setState] = useState<PracticeSessionState>({
+    phase: 'idle',
+    session: null,
+    latestAnalysis: null,
+    error: null,
+  })
+
+  const startSession = useCallback(
+    async (context: ConversationContext) => {
+      setState((prev) => ({ ...prev, phase: 'starting', error: null }))
+
+      try {
+        const provider = getProvider(settings.provider)
+        const opening = await provider.startConversation(context, settings)
+
+        const now = new Date().toISOString()
+        const openingTurn: ConversationTurn = {
+          id: makeId(),
+          role: 'assistant',
+          content: opening,
+          createdAt: now,
+        }
+
+        const session: PracticeSession = {
+          id: makeId(),
+          createdAt: now,
+          updatedAt: now,
+          topic: context.topic,
+          culture: context.culture,
+          provider: settings.provider,
+          model: settings.model,
+          turns: [openingTurn],
+        }
+
+        await saveSession(session)
+        setState({ phase: 'active', session, latestAnalysis: null, error: null })
+      } catch (err) {
+        setState((prev) => ({
+          ...prev,
+          phase: 'idle',
+          error: err instanceof Error ? err.message : 'Failed to start conversation.',
+        }))
+      }
+    },
+    [settings],
+  )
+
+  const submitUserTurn = useCallback(
+    async (userMessage: string) => {
+      if (state.phase !== 'active' || !state.session) return
+
+      setState((prev) => ({ ...prev, phase: 'loading', error: null }))
+
+      const context: ConversationContext = {
+        topic: state.session.topic,
+        culture: state.session.culture,
+      }
+
+      try {
+        const provider = getProvider(settings.provider)
+        const result = await provider.evaluateUserTurn({
+          context,
+          settings,
+          turns: state.session.turns,
+          userMessage,
+        })
+
+        const now = new Date().toISOString()
+
+        const userTurn: ConversationTurn = {
+          id: makeId(),
+          role: 'user',
+          content: userMessage,
+          createdAt: now,
+          analysis: result.analysis,
+        }
+
+        const assistantTurn: ConversationTurn = {
+          id: makeId(),
+          role: 'assistant',
+          content: result.assistantReply,
+          createdAt: now,
+        }
+
+        const updatedSession: PracticeSession = {
+          ...state.session,
+          updatedAt: now,
+          turns: [...state.session.turns, userTurn, assistantTurn],
+        }
+
+        await saveSession(updatedSession)
+
+        setState({
+          phase: 'active',
+          session: updatedSession,
+          latestAnalysis: result.analysis,
+          error: null,
+        })
+      } catch (err) {
+        setState((prev) => ({
+          ...prev,
+          phase: 'active',
+          error: err instanceof Error ? err.message : 'Failed to get a response. Check that Ollama is running.',
+        }))
+      }
+    },
+    [state.phase, state.session, settings],
+  )
+
+  const resetSession = useCallback(() => {
+    setState({ phase: 'idle', session: null, latestAnalysis: null, error: null })
+  }, [])
+
+  const clearError = useCallback(() => {
+    setState((prev) => ({ ...prev, error: null }))
+  }, [])
+
+  return { ...state, startSession, submitUserTurn, resetSession, clearError }
+}

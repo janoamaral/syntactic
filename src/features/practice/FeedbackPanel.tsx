@@ -1,10 +1,12 @@
 import { useMemo } from 'react'
+import ReactMarkdown from 'react-markdown'
 import type { FeedbackAnalysis, PracticeSession } from '../../types/domain'
 import { getSessionAverageScore } from '../../storage/sessionDb'
 
 interface FeedbackPanelProps {
   analysis: FeedbackAnalysis | null
   session: PracticeSession | null
+  selectedReply: string | null
 }
 
 function scoreClass(score: number): string {
@@ -13,7 +15,7 @@ function scoreClass(score: number): string {
   return 'low'
 }
 
-export function FeedbackPanel({ analysis, session }: FeedbackPanelProps) {
+export function FeedbackPanel({ analysis, session, selectedReply }: FeedbackPanelProps) {
   const avgScore = useMemo(
     () => (session ? getSessionAverageScore(session) : 0),
     [session],
@@ -37,6 +39,13 @@ export function FeedbackPanel({ analysis, session }: FeedbackPanelProps) {
 
   return (
     <div className="feedback-panel">
+      {selectedReply && (
+        <div className="feedback-selected-reply">
+          <div className="feedback-section__title">Selected reply</div>
+          <p>{selectedReply}</p>
+        </div>
+      )}
+
       {/* Score block */}
       <div className="score-block">
         <div className="score-block__row">
@@ -49,7 +58,9 @@ export function FeedbackPanel({ analysis, session }: FeedbackPanelProps) {
           )}
         </div>
         <div className={`score-number score-number--${sc}`}>{analysis.score}<span style={{ fontSize: 16, color: 'var(--text-3)' }}>/10</span></div>
-        <p className="score-rationale">{analysis.scoreRationale}</p>
+        <div className="score-rationale">
+          <ReactMarkdown>{analysis.scoreRationale}</ReactMarkdown>
+        </div>
       </div>
 
       {/* Grammar errors */}
@@ -112,7 +123,7 @@ function FeedbackSection({ title, tag, items, emptyText, itemClass }: FeedbackSe
         <ul className="feedback-list" role="list">
           {items.map((item, i) => (
             <li key={i} className={`feedback-item ${itemClass}`}>
-              {item}
+              <ReactMarkdown>{item}</ReactMarkdown>
             </li>
           ))}
         </ul>

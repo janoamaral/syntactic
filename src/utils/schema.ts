@@ -16,6 +16,14 @@ export const llmOutputSchema = z.object({
   analysis: feedbackAnalysisSchema,
 })
 
+export const sessionReviewSchema = z.object({
+  overallScore: z.number().min(3).max(10),
+  summary: z.string().min(1),
+  strengths: z.array(z.string()),
+  areasToImprove: z.array(z.string()),
+  priorityFocus: z.array(z.string()),
+})
+
 const settingsSchema = z.object({
   version: z.number().int().positive(),
   provider: z.enum(['ollama', 'openai', 'google', 'anthropic', 'qwen']),

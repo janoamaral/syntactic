@@ -10,6 +10,9 @@ function buildUnavailableProvider(name: string): LlmProvider {
     async evaluateUserTurn() {
       throw new Error(`${name} provider is not implemented yet. Use Ollama for now.`)
     },
+    async reviewSession() {
+      throw new Error(`${name} provider is not implemented yet. Use Ollama for now.`)
+    },
   }
 }
 

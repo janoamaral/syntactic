@@ -31,6 +31,14 @@ export interface ConversationContext {
   culture: string
 }
 
+export interface SessionReview {
+  overallScore: number
+  summary: string
+  strengths: string[]
+  areasToImprove: string[]
+  priorityFocus: string[]
+}
+
 export interface PracticeSession {
   id: string
   createdAt: string
@@ -40,6 +48,7 @@ export interface PracticeSession {
   provider: ProviderType
   model: string
   turns: ConversationTurn[]
+  review?: SessionReview
 }
 
 export interface AppSettings {

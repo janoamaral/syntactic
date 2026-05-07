@@ -5,6 +5,7 @@ import { SessionSetup } from './SessionSetup'
 import { PracticeView } from './PracticeView'
 import { Composer } from './Composer'
 import { FeedbackPanel } from './FeedbackPanel'
+import { SessionReviewModal } from './SessionReviewModal'
 
 interface PracticeLayoutProps {
   settings: AppSettings
@@ -16,9 +17,11 @@ export function PracticeLayout({ settings }: PracticeLayoutProps) {
   const {
     phase,
     session,
+    sessionReview,
     error,
     startSession,
     submitUserTurn,
+    finishSession,
     resetSession,
     clearError,
   } = usePracticeSession(settings)
@@ -48,10 +51,17 @@ export function PracticeLayout({ settings }: PracticeLayoutProps) {
   }, [userTurns])
 
   const isLoading = phase === 'loading' || phase === 'starting'
-  const isActive = phase === 'active' || phase === 'loading'
+  const isReviewing = phase === 'reviewing'
+  const isActive = phase === 'active' || phase === 'loading' || isReviewing
 
   return (
     <>
+      {sessionReview && (
+        <SessionReviewModal
+          review={sessionReview}
+          onClose={resetSession}
+        />
+      )}
       {/* ── Center column ── */}
       <main className="center-panel">
         {!isActive ? (
@@ -70,10 +80,11 @@ export function PracticeLayout({ settings }: PracticeLayoutProps) {
               <button
                 type="button"
                 className="btn-secondary"
-                onClick={resetSession}
-                title="End session and start a new one"
+                onClick={finishSession}
+                disabled={isReviewing || isLoading}
+                title="End session and get your final review"
               >
-                ✕ End session
+                {isReviewing ? '⏳ Reviewing…' : '✕ End session'}
               </button>
             </div>
 

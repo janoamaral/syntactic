@@ -5,22 +5,25 @@ import type {
   ConversationTurn,
   FeedbackAnalysis,
   PracticeSession,
+  SessionReview,
 } from '../../types/domain'
 import { getProvider } from '../../llm/providers'
 import { saveSession } from '../../storage/sessionDb'
 
-export type SessionPhase = 'idle' | 'starting' | 'active' | 'loading'
+export type SessionPhase = 'idle' | 'starting' | 'active' | 'loading' | 'reviewing'
 
 export interface PracticeSessionState {
   phase: SessionPhase
   session: PracticeSession | null
   latestAnalysis: FeedbackAnalysis | null
+  sessionReview: SessionReview | null
   error: string | null
 }
 
 export interface PracticeSessionActions {
   startSession: (context: ConversationContext) => Promise<void>
   submitUserTurn: (userMessage: string) => Promise<boolean>
+  finishSession: () => Promise<void>
   resetSession: () => void
   clearError: () => void
 }
@@ -36,6 +39,7 @@ export function usePracticeSession(
     phase: 'idle',
     session: null,
     latestAnalysis: null,
+    sessionReview: null,
     error: null,
   })
 
@@ -143,13 +147,50 @@ export function usePracticeSession(
     [state.phase, state.session, settings],
   )
 
+  const finishSession = useCallback(async () => {
+    if (!state.session) return
+    const session = state.session
+
+    setState((prev) => ({ ...prev, phase: 'reviewing', error: null }))
+
+    const context: ConversationContext = {
+      topic: session.topic,
+      culture: session.culture,
+    }
+
+    try {
+      const provider = getProvider(settings.provider)
+      const review = await provider.reviewSession({
+        context,
+        settings,
+        turns: session.turns,
+      })
+
+      const reviewedSession: PracticeSession = { ...session, review }
+      await saveSession(reviewedSession)
+
+      setState((prev) => ({
+        ...prev,
+        phase: 'active',
+        session: reviewedSession,
+        sessionReview: review,
+      }))
+    } catch (err) {
+      setState((prev) => ({
+        ...prev,
+        phase: 'active',
+        error: err instanceof Error ? err.message : 'Failed to generate session review.',
+      }))
+    }
+  }, [state.session, settings])
+
   const resetSession = useCallback(() => {
-    setState({ phase: 'idle', session: null, latestAnalysis: null, error: null })
+    setState({ phase: 'idle', session: null, latestAnalysis: null, sessionReview: null, error: null })
   }, [])
 
   const clearError = useCallback(() => {
     setState((prev) => ({ ...prev, error: null }))
   }, [])
 
-  return { ...state, startSession, submitUserTurn, resetSession, clearError }
+  return { ...state, startSession, submitUserTurn, finishSession, resetSession, clearError }
 }

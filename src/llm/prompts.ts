@@ -62,3 +62,53 @@ export function buildEvaluationPrompt(args: {
     `Latest user message: ${userMessage}`,
   ].filter(Boolean).join('\n')
 }
+
+export function buildSessionReviewPrompt(args: {
+  context: ConversationContext
+  coachStyle: string
+  turns: ConversationTurn[]
+}): string {
+  const { context, coachStyle, turns } = args
+
+  const userTurns = turns.filter((t) => t.role === 'user' && t.analysis)
+
+  const scoredReplies = userTurns
+    .map((t, i) => {
+      const a = t.analysis
+      if (!a) return null
+      const lines = [
+        `--- Reply ${i + 1} (score ${a.score}/10) ---`,
+        `Message: ${t.content}`,
+        `Score rationale: ${a.scoreRationale}`,
+      ]
+      if (a.grammarErrors.length) lines.push(`Grammar errors: ${a.grammarErrors.join(' | ')}`)
+      if (a.syntaxErrors.length) lines.push(`Syntax errors: ${a.syntaxErrors.join(' | ')}`)
+      if (a.naturalnessNotes.length) lines.push(`Naturalness: ${a.naturalnessNotes.join(' | ')}`)
+      if (a.improvementTips.length) lines.push(`Tips: ${a.improvementTips.join(' | ')}`)
+      return lines.join('\n')
+    })
+    .filter(Boolean)
+    .join('\n\n')
+
+  return [
+    'You are an English writing coach producing a final session review.',
+    `Conversation theme: ${context.topic}`,
+    `Culture and style target: ${context.culture}`,
+    `Coaching style: ${coachStyle}`,
+    `Total user replies evaluated: ${userTurns.length}`,
+    '',
+    'Here are all scored replies from the session:',
+    scoredReplies,
+    '',
+    'Based on ALL replies above, return ONLY valid JSON in this exact shape:',
+    '{',
+    '  "overallScore": <number 3-10, weighted average rounded to one decimal>,',
+    '  "summary": "<2-3 sentence narrative overview of the user\'s performance>",',
+    '  "strengths": ["<what the user consistently did well>"],',
+    '  "areasToImprove": ["<recurring issues or patterns the user should work on>"],',
+    '  "priorityFocus": ["<top 2-3 concrete practice recommendations for future sessions>"]',
+    '}',
+    'areasToImprove and priorityFocus must reference specific recurring patterns observed across replies, not just generic advice.',
+    'If there are fewer than 2 user replies, still produce the review based on what is available.',
+  ].join('\n')
+}

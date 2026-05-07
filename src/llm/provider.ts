@@ -4,6 +4,7 @@ import type {
   ConversationTurn,
   FeedbackAnalysis,
   ProviderType,
+  SessionReview,
 } from '../types/domain'
 
 export interface LlmEvaluationResult {
@@ -20,4 +21,9 @@ export interface LlmProvider {
     turns: ConversationTurn[]
     userMessage: string
   }): Promise<LlmEvaluationResult>
+  reviewSession(args: {
+    context: ConversationContext
+    settings: AppSettings
+    turns: ConversationTurn[]
+  }): Promise<SessionReview>
 }

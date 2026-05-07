@@ -32,6 +32,25 @@ npm run dev
 | `npm run preview` | Serve the production build locally to verify it before deploying |
 | `npm run lint` | Run ESLint across all source files |
 | `npm run typecheck` | Run `tsc --noEmit` without emitting files (type-check only) |
+| `npm run test` | Run unit tests once with Vitest |
+| `npm run test:watch` | Run unit tests in watch mode |
+| `npm run test:e2e` | Run end-to-end tests with Playwright |
+
+## Testing
+
+```bash
+# Unit tests
+npm run test
+
+# E2E tests
+npm run test:e2e
+```
+
+If this is your first Playwright run on the machine, install the browser binary:
+
+```bash
+npx playwright install chromium
+```
 
 ## Building for production
 

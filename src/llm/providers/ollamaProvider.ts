@@ -1,7 +1,7 @@
-import { buildEvaluationPrompt, buildStartPrompt } from '../prompts'
+import { buildEvaluationPrompt, buildSessionReviewPrompt, buildStartPrompt } from '../prompts'
 import type { LlmEvaluationResult, LlmProvider } from '../provider'
-import { llmOutputSchema, tryExtractJson } from '../../utils/schema'
-import type { AppSettings, ConversationContext, ConversationTurn } from '../../types/domain'
+import { llmOutputSchema, sessionReviewSchema, tryExtractJson } from '../../utils/schema'
+import type { AppSettings, ConversationContext, ConversationTurn, SessionReview } from '../../types/domain'
 
 interface OllamaGenerateResponse {
   response: string
@@ -65,6 +65,28 @@ export const ollamaProvider: LlmProvider = {
 
     if (!parsed.success) {
       throw new Error('Model output could not be parsed into the expected schema.')
+    }
+
+    return parsed.data
+  },
+
+  async reviewSession(args: {
+    context: ConversationContext
+    settings: AppSettings
+    turns: ConversationTurn[]
+  }): Promise<SessionReview> {
+    const prompt = buildSessionReviewPrompt({
+      context: args.context,
+      coachStyle: args.settings.coachStyle,
+      turns: args.turns,
+    })
+
+    const raw = await callOllama(args.settings, prompt)
+    const extracted = tryExtractJson(raw)
+    const parsed = sessionReviewSchema.safeParse(extracted)
+
+    if (!parsed.success) {
+      throw new Error('Session review could not be parsed into the expected schema.')
     }
 
     return parsed.data

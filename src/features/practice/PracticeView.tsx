@@ -3,6 +3,8 @@ import type { ConversationTurn } from '../../types/domain'
 
 interface PracticeViewProps {
   turns: ConversationTurn[]
+  selectedTurnId: string | null
+  onSelectTurn: (turnId: string) => void
   loading: boolean
   error: string | null
   onClearError: () => void
@@ -14,7 +16,14 @@ function scoreBadgeClass(score: number): string {
   return 'turn__score-badge--low'
 }
 
-export function PracticeView({ turns, loading, error, onClearError }: PracticeViewProps) {
+export function PracticeView({
+  turns,
+  selectedTurnId,
+  onSelectTurn,
+  loading,
+  error,
+  onClearError,
+}: PracticeViewProps) {
   const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -25,7 +34,18 @@ export function PracticeView({ turns, loading, error, onClearError }: PracticeVi
     <div className="conversation-thread">
       {turns.map((turn) => (
         <div key={turn.id} className={`turn turn--${turn.role}`}>
-          <div className="turn__bubble">{turn.content}</div>
+          {turn.role === 'user' && turn.analysis ? (
+            <button
+              type="button"
+              className={`turn__bubble-btn ${turn.id === selectedTurnId ? 'turn__bubble-btn--selected' : ''}`}
+              onClick={() => onSelectTurn(turn.id)}
+              aria-label="Select this reply to view its feedback"
+            >
+              <div className="turn__bubble">{turn.content}</div>
+            </button>
+          ) : (
+            <div className="turn__bubble">{turn.content}</div>
+          )}
           {turn.role === 'user' && turn.analysis && (
             <span className={`turn__score-badge ${scoreBadgeClass(turn.analysis.score)}`}>
               ★ {turn.analysis.score}/10

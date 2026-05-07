@@ -71,7 +71,7 @@ export function usePracticeSession(
         }
 
         await saveSession(session)
-        setState({ phase: 'active', session, latestAnalysis: null, error: null })
+        setState({ phase: 'active', session, latestAnalysis: null, sessionReview: null, error: null })
       } catch (err) {
         setState((prev) => ({
           ...prev,
@@ -132,6 +132,7 @@ export function usePracticeSession(
           phase: 'active',
           session: updatedSession,
           latestAnalysis: result.analysis,
+          sessionReview: null,
           error: null,
         })
         return true

@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import type { AppView, AppSettings, PracticeSession } from './types/domain'
 import { loadSettings, saveSettings } from './storage/settingsStorage'
 import { PracticeLayout } from './features/practice/PracticeLayout'
@@ -18,6 +18,31 @@ export default function App() {
   const [view, setView] = useState<AppView>('practice')
   const [settings, setSettings] = useState<AppSettings>(() => loadSettings())
   const [sessionToResume, setSessionToResume] = useState<PracticeSession | null>(null)
+  const [snackMessage, setSnackMessage] = useState<string | null>(null)
+  const [snackLeaving, setSnackLeaving] = useState(false)
+  const snackTimeoutRef = useRef<ReturnType<typeof globalThis.setTimeout> | null>(null)
+  const snackHideTimeoutRef = useRef<ReturnType<typeof globalThis.setTimeout> | null>(null)
+
+  const showSnack = useCallback((message: string) => {
+    if (snackHideTimeoutRef.current) {
+      globalThis.clearTimeout(snackHideTimeoutRef.current)
+      snackHideTimeoutRef.current = null
+    }
+    setSnackLeaving(false)
+    setSnackMessage(message)
+    if (snackTimeoutRef.current) {
+      globalThis.clearTimeout(snackTimeoutRef.current)
+    }
+    snackTimeoutRef.current = globalThis.setTimeout(() => {
+      setSnackLeaving(true)
+      snackTimeoutRef.current = null
+      snackHideTimeoutRef.current = globalThis.setTimeout(() => {
+        setSnackMessage(null)
+        setSnackLeaving(false)
+        snackHideTimeoutRef.current = null
+      }, 340)
+    }, 2600)
+  }, [])
 
   const handleSettingsChange = useCallback((next: AppSettings) => {
     setSettings(next)
@@ -71,12 +96,21 @@ export default function App() {
         <PracticeLayout settings={settings} sessionToResume={sessionToResume} onResumeConsumed={() => setSessionToResume(null)} />
       ) : (
         <main className="center-panel">
-          {view === 'sessions' && <SessionsView onResume={handleResume} />}
+          {view === 'sessions' && <SessionsView onResume={handleResume} onNotify={showSnack} />}
           {view === 'progress' && <ProgressView />}
           {view === 'settings' && (
-            <SettingsView settings={settings} onSave={handleSettingsChange} />
+            <SettingsView settings={settings} onSave={handleSettingsChange} onNotify={showSnack} />
           )}
         </main>
+      )}
+      {snackMessage && (
+        <div
+          className={`app-snackbar${snackLeaving ? ' app-snackbar--leaving' : ''}`}
+          role="status"
+          aria-live="polite"
+        >
+          {snackMessage}
+        </div>
       )}
     </div>
   )

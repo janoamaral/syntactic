@@ -6,6 +6,7 @@ import { exportSettings, importSettings } from '../../storage/settingsStorage'
 interface SettingsViewProps {
   settings: AppSettings
   onSave: (next: AppSettings) => void
+  onNotify: (message: string) => void
 }
 
 const PROVIDERS = [
@@ -16,22 +17,19 @@ const PROVIDERS = [
   { value: 'qwen', label: 'Qwen (Dashscope)' },
 ] as const
 
-export function SettingsView({ settings, onSave }: SettingsViewProps) {
+export function SettingsView({ settings, onSave, onNotify }: SettingsViewProps) {
   const [form, setForm] = useState<AppSettings>({ ...settings })
-  const [saved, setSaved] = useState(false)
   const [importError, setImportError] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
 
   const set = useCallback(<K extends keyof AppSettings>(key: K, value: AppSettings[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }))
-    setSaved(false)
   }, [])
 
   const handleSave = useCallback(() => {
     onSave(form)
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2500)
-  }, [form, onSave])
+    onNotify('Settings saved')
+  }, [form, onNotify, onSave])
 
   const handleExport = useCallback(() => {
     const json = exportSettings(form)
@@ -54,9 +52,7 @@ export function SettingsView({ settings, onSave }: SettingsViewProps) {
           const imported = importSettings(reader.result as string)
           setForm(imported)
           onSave(imported)
-          setSaved(true)
           setImportError(null)
-          setTimeout(() => setSaved(false), 2500)
         } catch {
           setImportError('Invalid config file. Please check the JSON format and try again.')
         }
@@ -266,11 +262,6 @@ export function SettingsView({ settings, onSave }: SettingsViewProps) {
           <button type="button" className="btn-primary" style={{ width: 'auto', marginTop: 0, padding: '10px 28px' }} onClick={handleSave}>
             Save settings
           </button>
-          {saved && (
-            <span className="settings-saved">
-              ✓ Saved
-            </span>
-          )}
         </div>
       </div>
     </div>

@@ -6,6 +6,7 @@ interface SessionDetailProps {
   readonly onBack: () => void
   readonly onResume: () => void
   readonly onDelete: () => Promise<void>
+  readonly onNotify: (message: string) => void
 }
 
 function scoreBadgeClass(score: number): string {
@@ -117,7 +118,7 @@ function sanitizeFilenamePart(value: string): string {
     .slice(0, 40)
 }
 
-export function SessionDetail({ session, onBack, onResume, onDelete }: SessionDetailProps) {
+export function SessionDetail({ session, onBack, onResume, onDelete, onNotify }: SessionDetailProps) {
   const [exportStatus, setExportStatus] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
   const yamlContent = useMemo(() => getConversationYaml(session), [session])
@@ -135,6 +136,7 @@ export function SessionDetail({ session, onBack, onResume, onDelete }: SessionDe
   const handleCopyYaml = async () => {
     try {
       await navigator.clipboard.writeText(yamlContent)
+      onNotify('YAML copied to clipboard')
       setExportStatus('YAML copied to clipboard')
     } catch {
       setExportStatus('Clipboard not available in this browser')

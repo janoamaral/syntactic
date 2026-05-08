@@ -5,9 +5,10 @@ import { SessionDetail } from './SessionDetail'
 
 interface SessionsViewProps {
   readonly onResume: (session: PracticeSession) => void
+  readonly onNotify: (message: string) => void
 }
 
-export function SessionsView({ onResume }: SessionsViewProps) {
+export function SessionsView({ onResume, onNotify }: SessionsViewProps) {
   const [sessions, setSessions] = useState<PracticeSession[]>([])
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState<PracticeSession | null>(null)
@@ -28,6 +29,7 @@ export function SessionsView({ onResume }: SessionsViewProps) {
     await deleteSession(sessionId)
     setSessions((prev) => prev.filter((s) => s.id !== sessionId))
     if (selected?.id === sessionId) setSelected(null)
+    onNotify('Session deleted')
   }
 
   if (selected) {
@@ -36,10 +38,12 @@ export function SessionsView({ onResume }: SessionsViewProps) {
         session={selected}
         onBack={() => setSelected(null)}
         onResume={() => onResume(selected)}
+        onNotify={onNotify}
         onDelete={async () => {
           await deleteSession(selected.id)
           setSessions((prev) => prev.filter((s) => s.id !== selected.id))
           setSelected(null)
+          onNotify('Session deleted')
         }}
       />
     )

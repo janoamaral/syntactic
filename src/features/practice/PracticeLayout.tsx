@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import type { AppSettings } from '../../types/domain'
+import type { AppSettings, PracticeSession } from '../../types/domain'
 import { usePracticeSession } from './usePracticeSession'
 import { SessionSetup } from './SessionSetup'
 import { PracticeView } from './PracticeView'
@@ -8,10 +8,12 @@ import { FeedbackPanel } from './FeedbackPanel'
 import { SessionReviewModal } from './SessionReviewModal'
 
 interface PracticeLayoutProps {
-  settings: AppSettings
+  readonly settings: AppSettings
+  readonly sessionToResume?: PracticeSession | null
+  readonly onResumeConsumed?: () => void
 }
 
-export function PracticeLayout({ settings }: PracticeLayoutProps) {
+export function PracticeLayout({ settings, sessionToResume, onResumeConsumed }: PracticeLayoutProps) {
   const [selectedTurnId, setSelectedTurnId] = useState<string | null>(null)
 
   const {
@@ -20,11 +22,19 @@ export function PracticeLayout({ settings }: PracticeLayoutProps) {
     sessionReview,
     error,
     startSession,
+    resumeSession,
     submitUserTurn,
     finishSession,
     resetSession,
     clearError,
   } = usePracticeSession(settings)
+
+  useEffect(() => {
+    if (sessionToResume) {
+      resumeSession(sessionToResume)
+      onResumeConsumed?.()
+    }
+  }, [sessionToResume, resumeSession, onResumeConsumed])
 
   const userTurns = useMemo(
     () => (session?.turns ?? []).filter((turn) => turn.role === 'user' && turn.analysis),

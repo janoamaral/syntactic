@@ -1,21 +1,52 @@
 import { useEffect, useState } from 'react'
 import type { PracticeSession } from '../../types/domain'
-import { listSessions, getSessionAverageScore } from '../../storage/sessionDb'
+import { listSessions, getSessionAverageScore, deleteSession } from '../../storage/sessionDb'
 import { SessionDetail } from './SessionDetail'
 
-export function SessionsView() {
+interface SessionsViewProps {
+  readonly onResume: (session: PracticeSession) => void
+  readonly onNotify: (message: string) => void
+}
+
+export function SessionsView({ onResume, onNotify }: SessionsViewProps) {
   const [sessions, setSessions] = useState<PracticeSession[]>([])
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState<PracticeSession | null>(null)
 
-  useEffect(() => {
+  const reload = () => {
     listSessions()
       .then(setSessions)
       .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    reload()
   }, [])
 
+  const handleDelete = async (e: React.MouseEvent, sessionId: string) => {
+    e.stopPropagation()
+    if (!globalThis.confirm('Delete this session? This cannot be undone.')) return
+    await deleteSession(sessionId)
+    setSessions((prev) => prev.filter((s) => s.id !== sessionId))
+    if (selected?.id === sessionId) setSelected(null)
+    onNotify('Session deleted')
+  }
+
   if (selected) {
-    return <SessionDetail session={selected} onBack={() => setSelected(null)} />
+    return (
+      <SessionDetail
+        session={selected}
+        onBack={() => setSelected(null)}
+        onResume={() => onResume(selected)}
+        onNotify={onNotify}
+        onDelete={async () => {
+          await deleteSession(selected.id)
+          setSessions((prev) => prev.filter((s) => s.id !== selected.id))
+          setSelected(null)
+          onNotify('Session deleted')
+        }}
+      />
+    )
   }
 
   return (
@@ -68,6 +99,24 @@ export function SessionsView() {
                     <span className="tag">{s.provider}</span>
                   </div>
                 </button>
+                <div className="session-card__actions">
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={() => onResume(s)}
+                    title="Resume this session"
+                  >
+                    ▶ Resume
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-danger"
+                    onClick={(e) => handleDelete(e, s.id)}
+                    title="Delete this session"
+                  >
+                    🗑 Delete
+                  </button>
+                </div>
               </li>
             )
           })}

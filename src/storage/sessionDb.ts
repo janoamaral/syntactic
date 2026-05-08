@@ -38,6 +38,11 @@ export async function listSessions(): Promise<PracticeSession[]> {
   )
 }
 
+export async function deleteSession(sessionId: string): Promise<void> {
+  const db = await dbPromise
+  await db.delete(SESSION_STORE, sessionId)
+}
+
 export function extractScorePoints(session: PracticeSession): SessionScorePoint[] {
   return session.turns
     .filter((turn) => turn.role === 'user' && turn.analysis)

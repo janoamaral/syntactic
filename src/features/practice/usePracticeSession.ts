@@ -22,6 +22,7 @@ export interface PracticeSessionState {
 
 export interface PracticeSessionActions {
   startSession: (context: ConversationContext) => Promise<void>
+  resumeSession: (session: PracticeSession) => void
   submitUserTurn: (userMessage: string) => Promise<boolean>
   finishSession: () => Promise<void>
   resetSession: () => void
@@ -189,9 +190,13 @@ export function usePracticeSession(
     setState({ phase: 'idle', session: null, latestAnalysis: null, sessionReview: null, error: null })
   }, [])
 
+  const resumeSession = useCallback((session: PracticeSession) => {
+    setState({ phase: 'active', session, latestAnalysis: null, sessionReview: null, error: null })
+  }, [])
+
   const clearError = useCallback(() => {
     setState((prev) => ({ ...prev, error: null }))
   }, [])
 
-  return { ...state, startSession, submitUserTurn, finishSession, resetSession, clearError }
+  return { ...state, startSession, resumeSession, submitUserTurn, finishSession, resetSession, clearError }
 }

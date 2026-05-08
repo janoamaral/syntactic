@@ -292,6 +292,29 @@
   color: var(--text-1);
 }
 
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: var(--error);
+  font-size: 13px;
+  border-radius: 9999px;
+  transition: background 0.12s, border-color 0.12s;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: var(--error);
+}
+
+.btn-danger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* ─── Conversation thread ────────────────────────────────────────────────── */
 .practice-layout {
   display: contents;
@@ -819,6 +842,18 @@
   min-height: 300px;
   gap: 12px;
   text-align: center;
+}
+
+.sessions-list li {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.session-card__actions {
+  display: flex;
+  gap: 8px;
+  padding: 0 2px;
 }
 
 .sessions-empty__icon {

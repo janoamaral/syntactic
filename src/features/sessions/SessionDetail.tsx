@@ -2,8 +2,10 @@ import { useMemo, useState } from 'react'
 import type { PracticeSession } from '../../types/domain'
 
 interface SessionDetailProps {
-  session: PracticeSession
-  onBack: () => void
+  readonly session: PracticeSession
+  readonly onBack: () => void
+  readonly onResume: () => void
+  readonly onDelete: () => Promise<void>
 }
 
 function scoreBadgeClass(score: number): string {
@@ -115,9 +117,20 @@ function sanitizeFilenamePart(value: string): string {
     .slice(0, 40)
 }
 
-export function SessionDetail({ session, onBack }: SessionDetailProps) {
+export function SessionDetail({ session, onBack, onResume, onDelete }: SessionDetailProps) {
   const [exportStatus, setExportStatus] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState(false)
   const yamlContent = useMemo(() => getConversationYaml(session), [session])
+
+  const handleDelete = async () => {
+    if (!globalThis.confirm('Delete this session? This cannot be undone.')) return
+    setDeleting(true)
+    try {
+      await onDelete()
+    } finally {
+      setDeleting(false)
+    }
+  }
 
   const handleCopyYaml = async () => {
     try {
@@ -158,11 +171,17 @@ export function SessionDetail({ session, onBack }: SessionDetailProps) {
           </div>
         </div>
         <div className="session-detail__actions">
+          <button type="button" className="btn-primary" onClick={onResume}>
+            ▶ Resume
+          </button>
           <button type="button" className="btn-secondary" onClick={handleCopyYaml}>
             Copy YAML
           </button>
           <button type="button" className="btn-secondary" onClick={handleDownloadYaml}>
             Download YAML
+          </button>
+          <button type="button" className="btn-danger" onClick={handleDelete} disabled={deleting}>
+            {deleting ? 'Deleting…' : '🗑 Delete'}
           </button>
           {exportStatus && <span className="session-detail__export-status">{exportStatus}</span>}
         </div>

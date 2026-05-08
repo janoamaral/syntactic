@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import type { AppView, AppSettings } from './types/domain'
+import type { AppView, AppSettings, PracticeSession } from './types/domain'
 import { loadSettings, saveSettings } from './storage/settingsStorage'
 import { PracticeLayout } from './features/practice/PracticeLayout'
 import { SessionsView } from './features/sessions/SessionsView'
@@ -17,13 +17,22 @@ const NAV_ITEMS: { view: AppView; label: string; icon: string }[] = [
 export default function App() {
   const [view, setView] = useState<AppView>('practice')
   const [settings, setSettings] = useState<AppSettings>(() => loadSettings())
+  const [sessionToResume, setSessionToResume] = useState<PracticeSession | null>(null)
 
   const handleSettingsChange = useCallback((next: AppSettings) => {
     setSettings(next)
     saveSettings(next)
   }, [])
 
-  const handleNewPractice = useCallback(() => setView('practice'), [])
+  const handleNewPractice = useCallback(() => {
+    setSessionToResume(null)
+    setView('practice')
+  }, [])
+
+  const handleResume = useCallback((session: PracticeSession) => {
+    setSessionToResume(session)
+    setView('practice')
+  }, [])
 
   return (
     <div className={`app-layout${view !== 'practice' ? ' app-layout--no-right' : ''}`}>
@@ -59,10 +68,10 @@ export default function App() {
 
       {/* ── Center (+ optional right panel) ── */}
       {view === 'practice' ? (
-        <PracticeLayout settings={settings} />
+        <PracticeLayout settings={settings} sessionToResume={sessionToResume} onResumeConsumed={() => setSessionToResume(null)} />
       ) : (
         <main className="center-panel">
-          {view === 'sessions' && <SessionsView />}
+          {view === 'sessions' && <SessionsView onResume={handleResume} />}
           {view === 'progress' && <ProgressView />}
           {view === 'settings' && (
             <SettingsView settings={settings} onSave={handleSettingsChange} />

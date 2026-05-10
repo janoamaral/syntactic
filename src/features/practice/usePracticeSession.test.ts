@@ -26,6 +26,7 @@ function makeSession(overrides: Partial<PracticeSession> = {}): PracticeSession 
     updatedAt: '2026-01-01T10:10:00.000Z',
     topic: 'Technical software development',
     culture: 'American English (US)',
+    adaptiveMode: false,
     provider: 'ollama',
     model: 'llama3.1:8b',
     turns: [
@@ -145,5 +146,21 @@ describe('usePracticeSession – resetSession', () => {
 
     expect(result.current.phase).toBe('idle')
     expect(result.current.session).toBeNull()
+  })
+})
+
+describe('usePracticeSession – setAdaptiveMode', () => {
+  it('updates adaptive mode on the active session', async () => {
+    const { result } = renderHook(() => usePracticeSession(DEFAULT_SETTINGS))
+
+    act(() => {
+      result.current.resumeSession(makeSession({ adaptiveMode: false }))
+    })
+
+    await act(async () => {
+      await result.current.setAdaptiveMode(true)
+    })
+
+    expect(result.current.session?.adaptiveMode).toBe(true)
   })
 })

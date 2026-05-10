@@ -84,10 +84,10 @@ export function FeedbackPanel({ analysis, session, selectedReply }: FeedbackPane
       {/* Naturalness */}
       <FeedbackSection
         title="Naturalness"
-        tag="warn"
+        tag="naturalness"
         items={analysis.naturalnessNotes}
         emptyText="Sounds natural!"
-        itemClass="feedback-item--warn"
+        itemClass="feedback-item--naturalness"
       />
 
       {/* Tips */}
@@ -104,7 +104,7 @@ export function FeedbackPanel({ analysis, session, selectedReply }: FeedbackPane
 
 interface FeedbackSectionProps {
   title: string
-  tag: 'error' | 'warn' | 'tip' | 'ok'
+  tag: 'error' | 'warn' | 'naturalness' | 'tip' | 'ok'
   items: string[]
   emptyText: string
   itemClass: string

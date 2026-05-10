@@ -23,6 +23,7 @@ export interface PracticeSessionState {
 export interface PracticeSessionActions {
   startSession: (context: ConversationContext) => Promise<void>
   resumeSession: (session: PracticeSession) => void
+  setAdaptiveMode: (enabled: boolean) => Promise<void>
   submitUserTurn: (userMessage: string) => Promise<boolean>
   finishSession: () => Promise<void>
   resetSession: () => void
@@ -66,6 +67,7 @@ export function usePracticeSession(
           updatedAt: now,
           topic: context.topic,
           culture: context.culture,
+          adaptiveMode: context.adaptiveMode,
           provider: settings.provider,
           model: settings.model,
           turns: [openingTurn],
@@ -93,6 +95,7 @@ export function usePracticeSession(
       const context: ConversationContext = {
         topic: state.session.topic,
         culture: state.session.culture,
+        adaptiveMode: state.session.adaptiveMode ?? false,
       }
 
       try {
@@ -149,6 +152,29 @@ export function usePracticeSession(
     [state.phase, state.session, settings],
   )
 
+  const setAdaptiveMode = useCallback(async (enabled: boolean) => {
+    if (!state.session) return
+
+    const updatedSession: PracticeSession = {
+      ...state.session,
+      adaptiveMode: enabled,
+      updatedAt: new Date().toISOString(),
+    }
+
+    try {
+      await saveSession(updatedSession)
+      setState((prev) => ({
+        ...prev,
+        session: updatedSession,
+      }))
+    } catch (err) {
+      setState((prev) => ({
+        ...prev,
+        error: err instanceof Error ? err.message : 'Failed to update adaptive mode.',
+      }))
+    }
+  }, [state.session])
+
   const finishSession = useCallback(async () => {
     if (!state.session) return
     const session = state.session
@@ -158,6 +184,7 @@ export function usePracticeSession(
     const context: ConversationContext = {
       topic: session.topic,
       culture: session.culture,
+      adaptiveMode: session.adaptiveMode ?? false,
     }
 
     try {
@@ -198,5 +225,14 @@ export function usePracticeSession(
     setState((prev) => ({ ...prev, error: null }))
   }, [])
 
-  return { ...state, startSession, resumeSession, submitUserTurn, finishSession, resetSession, clearError }
+  return {
+    ...state,
+    startSession,
+    resumeSession,
+    setAdaptiveMode,
+    submitUserTurn,
+    finishSession,
+    resetSession,
+    clearError,
+  }
 }

@@ -7,6 +7,31 @@ function serializeRecentTurns(turns: ConversationTurn[]): string {
     .join('\n')
 }
 
+function summarizeAdaptiveTargets(turns: ConversationTurn[]): string {
+  const analyzedUserTurns = turns.filter((turn) => turn.role === 'user' && turn.analysis)
+  const recentWithFeedback = analyzedUserTurns.slice(-3)
+
+  const targets = recentWithFeedback
+    .map((turn, index) => {
+      const analysis = turn.analysis
+      if (!analysis) return null
+
+      const grammar = analysis.grammarErrors.slice(0, 2).join(' | ')
+      const syntax = analysis.syntaxErrors.slice(0, 2).join(' | ')
+      const tips = analysis.improvementTips.slice(0, 2).join(' | ')
+
+      const parts = [`Turn -${recentWithFeedback.length - index}: score ${analysis.score}/10`]
+      if (grammar) parts.push(`Grammar issues: ${grammar}`)
+      if (syntax) parts.push(`Syntax issues: ${syntax}`)
+      if (tips) parts.push(`Improvement tips: ${tips}`)
+      return parts.join('\n')
+    })
+    .filter(Boolean)
+    .join('\n\n')
+
+  return targets || 'No previous analyzed turns yet.'
+}
+
 export function buildStartPrompt(
   context: ConversationContext,
   coachStyle: string,
@@ -16,6 +41,9 @@ export function buildStartPrompt(
     `Conversation theme: ${context.topic}`,
     `Culture and style target: ${context.culture}`,
     `Coaching style: ${coachStyle}`,
+    context.adaptiveMode
+      ? 'Adaptive mode: enabled. As the session evolves, guide the user toward practicing recurring weak points detected in feedback (for example verb tense control or missing detail).'
+      : 'Adaptive mode: disabled. Keep a natural conversation flow without intentionally targeting weak points.',
     'Start the conversation with a single short message that invites a reply.',
     'Do not provide feedback yet. Just send the opening message.',
   ].join('\n')
@@ -30,12 +58,16 @@ export function buildEvaluationPrompt(args: {
   const { context, coachStyle, history, userMessage } = args
 
   const lastAssistantMessage = [...history].reverse().find((t) => t.role === 'assistant')?.content ?? null
+  const adaptiveTargets = summarizeAdaptiveTargets(history)
 
   return [
     'You are both conversation partner and writing evaluator for English practice.',
     `Conversation theme: ${context.topic}`,
     `Culture and style target: ${context.culture}`,
     `Coaching style: ${coachStyle}`,
+    context.adaptiveMode
+      ? 'Adaptive mode: enabled. In assistantReply, guide the next exchange toward the user\'s weakest language areas identified in recent feedback while staying coherent with the conversation theme.'
+      : 'Adaptive mode: disabled. Keep assistantReply naturally aligned with the conversation without targeted remediation steering.',
     'Return ONLY valid JSON in this exact shape:',
     '{',
     '  "assistantReply": "string",',
@@ -56,6 +88,11 @@ export function buildEvaluationPrompt(args: {
     'At least one actionable suggestion in improvementTips.',
     'You may use markdown for clarity (for example: "**Pronoun Clarity:** ...").',
     'If the user gives very short answer to social question, recommend extending and reciprocating naturally.',
+    context.adaptiveMode
+      ? 'When adaptive mode is enabled, prioritize guided follow-up questions that force practice on weaknesses. Example: if tense usage is wrong, ask about a past or future event that requires the target tense; if detail is missing, ask for specific context (when, where, how, why, concrete examples).'
+      : '',
+    context.adaptiveMode ? 'Recent weakness targets from previous scored turns:' : '',
+    context.adaptiveMode ? adaptiveTargets : '',
     'Conversation history:',
     serializeRecentTurns(history),
     lastAssistantMessage ? `Last assistant message the user is responding to: "${lastAssistantMessage}"` : '',

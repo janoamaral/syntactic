@@ -29,6 +29,7 @@ export interface ConversationTurn {
 export interface ConversationContext {
   topic: string
   culture: string
+  adaptiveMode: boolean
 }
 
 export interface SessionReview {
@@ -45,6 +46,7 @@ export interface PracticeSession {
   updatedAt: string
   topic: string
   culture: string
+  adaptiveMode?: boolean
   provider: ProviderType
   model: string
   turns: ConversationTurn[]

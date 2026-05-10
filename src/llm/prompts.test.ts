@@ -11,13 +11,13 @@ const baseContext: ConversationContext = {
 
 describe('buildStartPrompt', () => {
   it('mentions adaptive mode enabled when requested', () => {
-    const prompt = buildStartPrompt({ ...baseContext, adaptiveMode: true }, 'Direct but supportive')
+    const prompt = buildStartPrompt({ ...baseContext, adaptiveMode: true }, 'Direct but supportive', 'Spanish')
 
     expect(prompt).toContain('Adaptive mode: enabled')
   })
 
   it('mentions adaptive mode disabled when not enabled', () => {
-    const prompt = buildStartPrompt(baseContext, 'Direct but supportive')
+    const prompt = buildStartPrompt(baseContext, 'Direct but supportive', 'Spanish')
 
     expect(prompt).toContain('Adaptive mode: disabled')
   })
@@ -57,6 +57,7 @@ describe('buildEvaluationPrompt', () => {
       coachStyle: 'Direct but supportive',
       history,
       userMessage: 'Today I am tired.',
+      userLanguage: 'Spanish',
     })
 
     expect(prompt).toContain('Adaptive mode: enabled')

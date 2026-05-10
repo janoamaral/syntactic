@@ -42,7 +42,7 @@ export const ollamaProvider: LlmProvider = {
     context: ConversationContext,
     settings: AppSettings,
   ): Promise<string> {
-    const prompt = buildStartPrompt(context, settings.coachStyle)
+    const prompt = buildStartPrompt(context, settings.coachStyle, settings.userLanguage)
     return callOllama(settings, prompt)
   },
 
@@ -57,6 +57,7 @@ export const ollamaProvider: LlmProvider = {
       coachStyle: args.settings.coachStyle,
       history: args.turns,
       userMessage: args.userMessage,
+      userLanguage: args.settings.userLanguage,
     })
 
     const raw = await callOllama(args.settings, prompt)
@@ -78,6 +79,7 @@ export const ollamaProvider: LlmProvider = {
     const prompt = buildSessionReviewPrompt({
       context: args.context,
       coachStyle: args.settings.coachStyle,
+      userLanguage: args.settings.userLanguage,
       turns: args.turns,
     })
 

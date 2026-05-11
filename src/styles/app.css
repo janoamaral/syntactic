@@ -14,6 +14,7 @@
   --success:     #22c55e;
   --warning:     #f59e0b;
   --error:       #ef4444;
+  --violet:      #8b5cf6;
   --radius-sm:   6px;
   --radius-md:   10px;
   --radius-lg:   16px;
@@ -248,6 +249,19 @@
   color: var(--text-3);
 }
 
+.session-setup__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--text-1);
+  cursor: pointer;
+}
+
+.session-setup__toggle input {
+  accent-color: var(--accent);
+}
+
 .btn-primary {
   display: flex;
   align-items: center;
@@ -290,6 +304,12 @@
   background: var(--surface-3);
   border-color: var(--accent);
   color: var(--text-1);
+}
+
+.btn-secondary--active {
+  border-color: rgba(232, 67, 26, 0.6);
+  color: var(--accent);
+  background: rgba(232, 67, 26, 0.1);
 }
 
 .btn-danger {
@@ -342,6 +362,12 @@
   gap: 2px;
 }
 
+.conversation-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .conversation-header__title {
   font-family: var(--font-title);
   font-size: 15px;
@@ -352,6 +378,20 @@
 .conversation-header__subtitle {
   font-size: 12px;
   color: var(--text-2);
+}
+
+.conversation-header__badge {
+  margin-top: 6px;
+  display: inline-flex;
+  width: fit-content;
+  padding: 2px 9px;
+  border-radius: 9999px;
+  background: rgba(232, 67, 26, 0.15);
+  border: 1px solid rgba(232, 67, 26, 0.4);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent);
 }
 
 .conversation-thread {
@@ -714,7 +754,8 @@
 
 .feedback-tag--error  { background: var(--error); }
 .feedback-tag--warn   { background: var(--warning); }
-.feedback-tag--tip    { background: var(--accent); }
+.feedback-tag--naturalness { background: var(--violet); }
+.feedback-tag--tip    { background: var(--warning); }
 .feedback-tag--ok     { background: var(--success); }
 
 .feedback-list {
@@ -735,7 +776,8 @@
 
 .feedback-item--error  { border-left-color: var(--error); }
 .feedback-item--warn   { border-left-color: var(--warning); }
-.feedback-item--tip    { border-left-color: var(--accent); }
+.feedback-item--naturalness { border-left-color: var(--violet); }
+.feedback-item--tip    { border-left-color: var(--warning); }
 .feedback-item--ok     { border-left-color: var(--success); }
 
 .feedback-empty {
@@ -1249,6 +1291,8 @@
 }
 
 .modal {
+  position: relative;
+  margin: 0;
   background: var(--surface-1);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);

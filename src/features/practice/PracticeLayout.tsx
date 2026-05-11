@@ -23,6 +23,7 @@ export function PracticeLayout({ settings, sessionToResume, onResumeConsumed }: 
     error,
     startSession,
     resumeSession,
+    setAdaptiveMode,
     submitUserTurn,
     finishSession,
     resetSession,
@@ -86,16 +87,32 @@ export function PracticeLayout({ settings, sessionToResume, onResumeConsumed }: 
               <div className="conversation-header__meta">
                 <div className="conversation-header__title">{session?.topic}</div>
                 <div className="conversation-header__subtitle">{session?.culture}</div>
+                {session?.adaptiveMode && (
+                  <div className="conversation-header__badge">Adaptive mode enabled</div>
+                )}
               </div>
-              <button
-                type="button"
-                className="btn-secondary"
-                onClick={finishSession}
-                disabled={isReviewing || isLoading}
-                title="End session and get your final review"
-              >
-                {isReviewing ? '⏳ Reviewing…' : '✕ End session'}
-              </button>
+              <div className="conversation-header__actions">
+                <button
+                  type="button"
+                  className={`btn-secondary ${session?.adaptiveMode ? 'btn-secondary--active' : ''}`}
+                  onClick={() => {
+                    void setAdaptiveMode(!(session?.adaptiveMode ?? false))
+                  }}
+                  disabled={isReviewing || isLoading}
+                  title="Enable or disable adaptive mode during this session"
+                >
+                  {session?.adaptiveMode ? 'Adaptive: ON' : 'Adaptive: OFF'}
+                </button>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={finishSession}
+                  disabled={isReviewing || isLoading}
+                  title="End session and get your final review"
+                >
+                  {isReviewing ? '⏳ Reviewing…' : '✕ End session'}
+                </button>
+              </div>
             </div>
 
             <PracticeView

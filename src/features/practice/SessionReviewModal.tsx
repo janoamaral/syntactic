@@ -47,12 +47,12 @@ export function SessionReviewModal({ review, onClose }: SessionReviewModalProps)
           {review.strengths.length > 0 && (
             <div className="feedback-section">
               <div className="feedback-section__title">
-                <span className="feedback-tag feedback-tag--tip" aria-hidden="true" />
+                <span className="feedback-tag feedback-tag--ok" aria-hidden="true" />
                 {' '}What you did well
               </div>
               <ul className="feedback-list" role="list">
                 {review.strengths.map((item, i) => (
-                  <li key={i} className="feedback-item feedback-item--tip">
+                  <li key={i} className="feedback-item feedback-item--ok">
                     <ReactMarkdown>{item}</ReactMarkdown>
                   </li>
                 ))}

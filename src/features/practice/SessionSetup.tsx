@@ -1,7 +1,6 @@
 import { useState } from 'react'
-import type { AppSettings } from '../../types/domain'
+import type { AppSettings, ConversationContext } from '../../types/domain'
 import { TOPIC_OPTIONS, CULTURE_OPTIONS } from '../../types/domain'
-import type { ConversationContext } from '../../types/domain'
 
 interface SessionSetupProps {
   settings: AppSettings
@@ -9,9 +8,10 @@ interface SessionSetupProps {
   loading: boolean
 }
 
-export function SessionSetup({ settings, onStart, loading }: SessionSetupProps) {
+export function SessionSetup({ settings, onStart, loading }: Readonly<SessionSetupProps>) {
   const [topic, setTopic] = useState(settings.defaultTopic)
   const [culture, setCulture] = useState(settings.defaultCulture)
+  const [adaptiveMode, setAdaptiveMode] = useState(false)
 
   return (
     <div className="session-setup">
@@ -61,11 +61,27 @@ export function SessionSetup({ settings, onStart, loading }: SessionSetupProps) 
           </select>
         </div>
 
+        <div className="form-group">
+          <label className="session-setup__toggle" htmlFor="adaptive-mode-toggle">
+            <input
+              id="adaptive-mode-toggle"
+              type="checkbox"
+              checked={adaptiveMode}
+              onChange={(e) => setAdaptiveMode(e.target.checked)}
+              disabled={loading}
+            />
+            <span>Adaptive mode</span>
+          </label>
+          <span className="form-hint">
+            When enabled, the AI intentionally steers the next questions toward your weak spots.
+          </span>
+        </div>
+
         <button
           type="button"
           className="btn-primary"
           disabled={loading}
-          onClick={() => onStart({ topic, culture })}
+          onClick={() => onStart({ topic, culture, adaptiveMode })}
         >
           {loading ? (
             <>

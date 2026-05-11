@@ -29,6 +29,7 @@ export interface ConversationTurn {
 export interface ConversationContext {
   topic: string
   culture: string
+  adaptiveMode: boolean
 }
 
 export interface SessionReview {
@@ -45,6 +46,7 @@ export interface PracticeSession {
   updatedAt: string
   topic: string
   culture: string
+  adaptiveMode?: boolean
   provider: ProviderType
   model: string
   turns: ConversationTurn[]
@@ -60,6 +62,7 @@ export interface AppSettings {
   temperature: number
   defaultTopic: string
   defaultCulture: string
+  userLanguage: string
   coachStyle: string
   speechEnabled: boolean
 }
@@ -83,6 +86,18 @@ export const CULTURE_OPTIONS = [
   'International workplace English',
 ]
 
+export const LANGUAGE_OPTIONS = [
+  'Spanish',
+  'French',
+  'German',
+  'Italian',
+  'Portuguese',
+  'Japanese',
+  'Mandarin Chinese',
+  'Korean',
+  'Russian',
+]
+
 export const DEFAULT_SETTINGS: AppSettings = {
   version: 1,
   provider: 'ollama',
@@ -92,6 +107,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   temperature: 0.5,
   defaultTopic: TOPIC_OPTIONS[0],
   defaultCulture: CULTURE_OPTIONS[0],
+  userLanguage: LANGUAGE_OPTIONS[0],
   coachStyle: 'Supportive but direct. Explain briefly and provide practical rewrites.',
   speechEnabled: false,
 }

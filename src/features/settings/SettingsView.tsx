@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react'
 import type { AppSettings } from '../../types/domain'
-import { TOPIC_OPTIONS, CULTURE_OPTIONS } from '../../types/domain'
+import { TOPIC_OPTIONS, CULTURE_OPTIONS, LANGUAGE_OPTIONS } from '../../types/domain'
 import { exportSettings, importSettings } from '../../storage/settingsStorage'
 
 interface SettingsViewProps {
@@ -204,6 +204,25 @@ export function SettingsView({ settings, onSave, onNotify }: SettingsViewProps) 
                   <option key={c} value={c}>{c}</option>
                 ))}
               </select>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label" htmlFor="user-language">
+                Your language (for feedback)
+              </label>
+              <select
+                id="user-language"
+                className="form-select"
+                value={form.userLanguage}
+                onChange={(e) => set('userLanguage', e.target.value)}
+              >
+                {LANGUAGE_OPTIONS.map((l) => (
+                  <option key={l} value={l}>{l}</option>
+                ))}
+              </select>
+              <span className="form-hint">
+                The AI coach will provide feedback and corrections in your native language.
+              </span>
             </div>
           </div>
 

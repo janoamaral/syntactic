@@ -33,6 +33,7 @@ const settingsSchema = z.object({
   temperature: z.number().min(0).max(1),
   defaultTopic: z.string().min(1),
   defaultCulture: z.string().min(1),
+  userLanguage: z.string().min(1),
   coachStyle: z.string().min(1),
   speechEnabled: z.boolean(),
 })
